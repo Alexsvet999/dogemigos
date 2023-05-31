@@ -18,6 +18,7 @@ myst-parser = {version = "*", extras = ["linkify"]}
 pyproject-flake8 = "*"
 black = "*"
 isort = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.8"

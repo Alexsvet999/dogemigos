@@ -1,4 +1,6 @@
+import inspect
 import sys
+from pathlib import Path
 
 if sys.version_info[:2] >= (3, 8):
     # TODO: Import directly (no need for conditional) when `python_requires = >= 3.8`
@@ -14,3 +16,5 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 finally:
     del version, PackageNotFoundError
+
+ROOT_PATH = Path(inspect.getfile(inspect.currentframe())).parent
