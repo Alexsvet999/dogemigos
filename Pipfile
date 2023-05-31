@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+dogemigos = {editable = true, path = "."}
+
+[dev-packages]
+pylint = "*"
+pytest  = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
+twine = "*"
+atomicwrites = {version = "*", markers = "sys_platform == 'win32'"}
+build = {version = "*", extras = ["virtualenv"]}
+myst-parser = {version = "*", extras = ["linkify"]}
+pyproject-flake8 = "*"
+black = "*"
+isort = "*"
+
+[requires]
+python_version = "3.8"
