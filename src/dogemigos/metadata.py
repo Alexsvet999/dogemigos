@@ -15,12 +15,86 @@ class Metadata:
     __NOT_REVEALED = "Not Revealed"
     _METADATA = __DAT / "metadata.json"
     _ATTRIBUTES = __DAT / "all_attributes_sorted.json"
+    _DOGE_TYPES = __DAT / "doge_types.json"
     MAX_SUPPLY = 6666
+
+    class _Attributes(list):
+        def has(self, trait, value):
+            if {"trait_type": trait, "value": value} in self:
+                return True
+            return False
+
+    class DogeTypes(dict):
+        def to_string(self):
+            lines = []
+            lines.append("{")
+            for t in self:
+                _type = self[t]
+                if t == "Body":
+                    lines.append(f'  "{t}": {{')
+                    for b in _type:
+                        lines.append(f'    "{b}": {_type[b]},')
+                    lines[-1] = lines[-1][:-1]
+                    lines.append("  },")
+                else:
+                    lines.append(f'  "{t}": {json.dumps(_type)},')
+            lines[-1] = lines[-1][:-1]
+            lines.append("}")
+            return '\n'.join(lines)
+
+        def dump(self):
+            with open(Metadata._DOGE_TYPES, 'w') as o:
+                o.write(self.to_string())
 
     @classmethod
     def get_raw(cls) -> dict:
         with open(cls._METADATA, 'r') as f:
             return json.load(f)
+
+    @classmethod
+    def read_doge_types_from_raw_metadata(cls):
+        all_metadata = Metadata.get_raw()
+        no_dupes_set = {}
+        types = {}
+
+        for id_str in all_metadata:
+            id = int(id_str)
+            metadata = all_metadata[id_str]
+            try:
+                nft_attributes = Metadata._Attributes(metadata["attributes"])
+            except KeyError:
+                continue
+
+            # Bodies
+            if nft_attributes.has("Body", "Alien"):
+                types.setdefault("Body", {}).setdefault("Alien", []).append(id)
+            elif nft_attributes.has("Body", "Robot"):
+                types.setdefault("Body", {}).setdefault("Robot", []).append(id)
+            elif nft_attributes.has("Body", "Demon "):
+                types.setdefault("Body", {}).setdefault("Demon", []).append(id)
+            elif nft_attributes.has("Body", "Zombie"):
+                types.setdefault("Body", {}).setdefault("Zombie", []).append(id)
+
+            # Twins
+            nft_attr_key = str(nft_attributes) # Attributes dict to str
+            if nft_attr_key in no_dupes_set:
+                types.setdefault("Twins", {})[id] = no_dupes_set[nft_attr_key]
+            else:
+                no_dupes_set[nft_attr_key] = id
+
+            # Full Body Suits
+            if nft_attributes[0]["trait_type"] == "Full Body Suit":
+                types.setdefault("Full Body Suit", []).append(id)
+
+            # Legendary
+            if nft_attributes[0]["trait_type"] == "Legendary":
+                types.setdefault("Legendary", []).append(id)
+
+            # Trait count 7
+            if len(nft_attributes) == 7:
+                types.setdefault("Trait count 7", []).append(id)
+
+        return types
 
     @classmethod
     def read_attributes_from_raw_metadata(cls) -> dict:
@@ -68,6 +142,15 @@ class Metadata:
         dump_json(cls._ATTRIBUTES, cls.read_attributes_from_raw_metadata(), 2)
 
     @classmethod
+    def dump_sorted_attributes(cls):
+        cls.DogeTypes(cls.read_doge_types_from_raw_metadata()).dump()
+
+    @classmethod
     def get_attributes(cls) -> dict:
         with open(cls._ATTRIBUTES, 'r') as f:
+            return json.load(f)
+
+    @classmethod
+    def get_doge_types(cls):
+        with open(cls._DOGE_TYPES, 'r') as f:
             return json.load(f)
