@@ -1,12 +1,6 @@
 import pytest
 
-import json
 from dogemigos.metadata import Metadata
-
-__author__ = "ipdoe"
-__copyright__ = "ipdoe"
-__license__ = "MPL-2.0"
-
 
 def test__read_attributes_from_raw_metadata():
     revealed = Metadata.MAX_SUPPLY - 35
@@ -23,7 +17,6 @@ def test__read_attributes_from_raw_metadata():
 
 
 def test__read_doge_types_from_raw_metadata():
-
     def test_doge_types(types):
         assert len(types["Twins"]) == 7
         assert len(types["Trait count 7"]) == 2

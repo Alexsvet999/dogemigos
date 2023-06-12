@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from dogemigos import ROOT_PATH
+from open_rarity import StringAttribute
 
 def dump_json(target: Path, data: dict, indent=None):
     with open(target, 'w') as o:
@@ -10,6 +11,7 @@ def dump_json(target: Path, data: dict, indent=None):
             o.write(json.dumps(data, indent=indent))
 
 class Metadata:
+    _CONTRACT = "0x3C53941eE6a23a1A046F2a956BAF36e4E4b04E35"
     _HASH = "bafybeidobz2qzgytkqwmb3iq2fdwxvndk3pri5dnyqqhp6df5cshqp6io4"
     __DAT = ROOT_PATH / "dat"
     __NOT_REVEALED = "Not Revealed"
@@ -18,11 +20,19 @@ class Metadata:
     _DOGE_TYPES = __DAT / "doge_types.json"
     MAX_SUPPLY = 6666
 
-    class _Attributes(list):
+    class Attributes(list):
         def has(self, trait, value):
             if {"trait_type": trait, "value": value} in self:
                 return True
             return False
+
+        def to_open_rarity(self):
+            open_rarity_attr = {}
+            for trait in self:
+                open_rarity_attr[trait["trait_type"]] = StringAttribute(name=trait["trait_type"], value=trait["value"])
+            return open_rarity_attr
+
+
 
     class DogeTypes(dict):
         def to_string(self):
