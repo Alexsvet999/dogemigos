@@ -33,3 +33,17 @@ def test__read_doge_types_from_raw_metadata():
 
     types = Metadata.get_doge_types()
     test_doge_types(types)
+
+def test__calculate_open_rarity():
+    def test_rarity(metadata):
+        assert metadata["1"]["open_rarity_rank"] == 6395
+        assert metadata["1"]["open_rarity_score"] == 0.6767607144247997
+        assert metadata["3000"]["open_rarity_rank"] == 2692
+        assert metadata["3000"]["open_rarity_score"] == 1.0121343668279381
+        assert metadata["6666"]["open_rarity_rank"] == 2944
+        assert metadata["6666"]["open_rarity_score"] == 0.9988720100401157
+
+    metadata = Metadata.calculate_open_rarity(Metadata.get_raw())
+    test_rarity(metadata)
+    metadata = Metadata.get_metadata()
+    test_rarity(metadata)

@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 from dogemigos import ROOT_PATH
-from open_rarity import StringAttribute
+from open_rarity import Collection, Token, RarityRanker, TokenMetadata, StringAttribute
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_standard import TokenStandard
 
 def dump_json(target: Path, data: dict, indent=None):
     with open(target, 'w') as o:
@@ -11,16 +13,19 @@ def dump_json(target: Path, data: dict, indent=None):
             o.write(json.dumps(data, indent=indent))
 
 class Metadata:
-    _CONTRACT = "0x3C53941eE6a23a1A046F2a956BAF36e4E4b04E35"
-    _HASH = "bafybeidobz2qzgytkqwmb3iq2fdwxvndk3pri5dnyqqhp6df5cshqp6io4"
     __DAT = ROOT_PATH / "dat"
     __NOT_REVEALED = "Not Revealed"
+    _HASH = "bafybeidobz2qzgytkqwmb3iq2fdwxvndk3pri5dnyqqhp6df5cshqp6io4"
     _METADATA = __DAT / "metadata.json"
+    _METADATA_WITH_RARITY = __DAT / "metadata_with_open_rarity.json"
+    _METADATA_WITH_RARITY_PRETTY = __DAT / "metadata_with_open_rarity_pretty.json"
     _ATTRIBUTES = __DAT / "all_attributes_sorted.json"
     _DOGE_TYPES = __DAT / "doge_types.json"
+    COLLECTION_NAME = "Dogemigos"
+    CONTRACT = "0x3C53941eE6a23a1A046F2a956BAF36e4E4b04E35"
     MAX_SUPPLY = 6666
 
-    class Attributes(list):
+    class _Attributes(list):
         def has(self, trait, value):
             if {"trait_type": trait, "value": value} in self:
                 return True
@@ -31,7 +36,6 @@ class Metadata:
             for trait in self:
                 open_rarity_attr[trait["trait_type"]] = StringAttribute(name=trait["trait_type"], value=trait["value"])
             return open_rarity_attr
-
 
 
     class DogeTypes(dict):
@@ -56,9 +60,17 @@ class Metadata:
             with open(Metadata._DOGE_TYPES, 'w') as o:
                 o.write(self.to_string())
 
+    def __init__(self) -> None:
+        _metadata = self.get_raw()
+
     @classmethod
     def get_raw(cls) -> dict:
         with open(cls._METADATA, 'r') as f:
+            return json.load(f)
+
+    @classmethod
+    def get_metadata(cls) -> dict:
+        with open(cls._METADATA_WITH_RARITY, 'r') as f:
             return json.load(f)
 
     @classmethod
@@ -164,3 +176,36 @@ class Metadata:
     def get_doge_types(cls):
         with open(cls._DOGE_TYPES, 'r') as f:
             return json.load(f)
+
+    @classmethod
+    def _open_rarity_token(cls, id: int, attributes: dict):
+        return Token(
+            token_identifier=EVMContractTokenIdentifier(contract_address=cls.CONTRACT, token_id=int(id)),
+            token_standard=TokenStandard.ERC721,
+            metadata=TokenMetadata(string_attributes=attributes)
+        )
+
+    @classmethod
+    def calculate_open_rarity(cls, metadata):
+        tokens = []
+        for id in metadata:
+            try:
+                tokens.append(
+                    cls._open_rarity_token(int(id), Metadata._Attributes(metadata[id]["attributes"]).to_open_rarity())
+                )
+            except KeyError:
+                pass
+        rarity_list = RarityRanker.rank_collection(collection=Collection(name=cls.COLLECTION_NAME, tokens=tokens))
+        for nft in rarity_list:
+            id = str(nft.token.token_identifier.token_id)
+            nft.rank
+            metadata[id]["open_rarity_rank"] = nft.rank
+            metadata[id]["open_rarity_score"] = nft.score
+        return metadata
+
+    @classmethod
+    def dump_open_rarity(cls):
+        metadata = cls.calculate_open_rarity(cls.get_raw())
+        dump_json(cls._METADATA_WITH_RARITY, metadata)
+        dump_json(cls._METADATA_WITH_RARITY_PRETTY, metadata, indent=2)
+
