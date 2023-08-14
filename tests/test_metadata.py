@@ -1,10 +1,10 @@
 import pytest
 
-from dogemigos.metadata import Metadata
+from dogemigos.lib.metadata import DogemigosMetadata
 
 def test__read_attributes_from_raw_metadata():
-    revealed = Metadata.MAX_SUPPLY - 35
-    all_attributes = Metadata.read_attributes_from_raw_metadata()
+    revealed = DogemigosMetadata.MAX_SUPPLY - 35
+    all_attributes = DogemigosMetadata.read_attributes_from_raw_metadata()
     for a in all_attributes:
         attribute_sum = 0
         for trait in all_attributes[a]:
@@ -28,10 +28,10 @@ def test__read_doge_types_from_raw_metadata():
         assert len(types["Body"]["Demon"]) == 249
         assert len(types["Body"]["Zombie"]) == 249
 
-    types = Metadata.read_doge_types_from_raw_metadata()
+    types = DogemigosMetadata.read_doge_types_from_raw_metadata()
     test_doge_types(types)
 
-    types = Metadata.get_doge_types()
+    types = DogemigosMetadata.get_doge_types()
     test_doge_types(types)
 
 def test__calculate_open_rarity():
@@ -43,7 +43,7 @@ def test__calculate_open_rarity():
         assert metadata["6666"]["open_rarity_rank"] == 2944
         assert metadata["6666"]["open_rarity_score"] == 0.9988720100401157
 
-    metadata = Metadata.calculate_open_rarity(Metadata.get_raw())
+    metadata = DogemigosMetadata.calculate_open_rarity(DogemigosMetadata.get_raw())
     test_rarity(metadata)
-    metadata = Metadata.get_metadata()
+    metadata = DogemigosMetadata.get_metadata()
     test_rarity(metadata)
