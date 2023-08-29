@@ -16,14 +16,20 @@ def to_dict():
         print(to_json_str(whitelist))
     return whitelist
 
+flatlist = set()
 def flatten(whitelist: dict):
     with open(TXT_PATH, 'w') as f:
         for hodler in whitelist:
             if len(whitelist[hodler]) > 5:
                 raise RuntimeError(f"Too many wallets: {hodler}: {whitelist[hodler]}")
             for address in whitelist[hodler]:
-                print(address)
-                f.write(f"{address}\n")
+                flatlist.add(address)
+
+        for address in flatlist:
+            print(address)
+            f.write(f"{address}\n")
+
+        flatlist.add("0x05b48a6d0c5c521b5417641759cfc0de661d5d06")
 
 
 def main():
